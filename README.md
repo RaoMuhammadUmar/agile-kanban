@@ -1,92 +1,288 @@
-# Agile Workspace — Kanban Board
+# Agile Kanban
 
-Full-stack Trello-style Kanban board: React + Tailwind frontend, Express + Supabase
-Postgres backend, JWT auth, and drag-and-drop tasks (via `@hello-pangea/dnd`).
+A full-stack Kanban task management application built with React, Node.js, Express, PostgreSQL, and Vercel.
 
+## Live Demo
+
+**[Open Agile Kanban](https://agile-kanban.vercel.app/)**
+
+## Overview
+
+Agile Kanban is a personal task and project management workspace designed around a Kanban workflow.
+
+Users can create boards, organize work into columns, create and manage tasks, assign priorities, and move tasks using drag-and-drop.
+
+The application also provides a dashboard with task statistics and progress information.
+
+## Features
+
+* User registration and login
+* JWT-based authentication
+* Protected API routes
+* Multiple Kanban boards
+* Custom board columns
+* Task creation, editing, and deletion
+* Task descriptions
+* Low, Medium, and High priorities
+* Drag-and-drop task reordering
+* Task completion tracking through the Done column
+* Search tasks
+* Filter tasks by priority
+* Task statistics dashboard
+* Completion percentage
+* Priority breakdown
+* Responsive glass-style UI
+* Production deployment with Vercel
+* PostgreSQL database hosted on Neon
+
+## Tech Stack
+
+### Frontend
+
+* React
+* Vite
+* Tailwind CSS
+* Lucide React
+* @hello-pangea/dnd
+
+### Backend
+
+* Node.js
+* Express
+* JWT
+* bcryptjs
+* PostgreSQL
+* pg
+
+### Infrastructure
+
+* Vercel
+* Neon PostgreSQL
+* GitHub
+
+## Architecture
+
+```text
+React + Vite
+     │
+     │ HTTP / JSON
+     ▼
+Express API
+     │
+     │ PostgreSQL queries
+     ▼
+Neon PostgreSQL
 ```
-agile-kanban/
-├── schema.sql              # run this in Supabase's SQL editor first
-├── server/                 # Express API
-│   ├── server.js
-│   ├── db.js
-│   ├── middleware/auth.js
-│   └── routes/{auth,boards,columns,tasks}.js
-└── client/                 # React (Vite) frontend
-    └── src/
-        ├── App.jsx
-        ├── api.js
-        ├── context/AuthContext.jsx
-        └── components/{Login,Register,BoardList,KanbanBoard,Navbar,Column,TaskCard,TaskModal}.jsx
+
+Authentication works through JWTs:
+
+```text
+Login / Register
+       │
+       ▼
+Express API
+       │
+       ├── bcrypt password verification
+       │
+       └── JWT generation
+              │
+              ▼
+        React localStorage
+              │
+              ▼
+      Protected API requests
 ```
 
-## 1. Set up the database (Supabase)
+## API
 
-1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
-2. Go to **SQL Editor → New query**, paste the contents of `schema.sql`, and run it.
-   This creates `users`, `boards`, `columns`, and `tasks` tables.
-3. Go to **Project Settings → Database → Connection string → URI** and copy it
-   (use the direct connection on port `5432`, not the pooled `6543` one — this
-   server keeps a long-lived connection pool rather than being serverless).
+### Authentication
 
-## 2. Run the backend
+```text
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+```
+
+### Boards
+
+```text
+GET    /api/boards
+POST   /api/boards
+GET    /api/boards/:boardId/full
+DELETE /api/boards/:boardId
+```
+
+### Columns
+
+```text
+POST   /api/columns
+PUT    /api/columns/:columnId
+DELETE /api/columns/:columnId
+```
+
+### Tasks
+
+```text
+POST   /api/tasks
+PUT    /api/tasks/:taskId
+DELETE /api/tasks/:taskId
+POST   /api/tasks/reorder
+```
+
+## Local Development
+
+### Prerequisites
+
+* Node.js
+* npm
+* PostgreSQL-compatible database
+
+### Clone
+
+```bash
+git clone https://github.com/RaoMuhammadUmar/agile-kanban.git
+cd agile-kanban
+```
+
+### Backend
 
 ```bash
 cd server
 npm install
-cp .env.example .env
-```
-
-Edit `.env`:
-- `DATABASE_URL` — the Supabase connection string from step 1 (fill in your password)
-- `JWT_SECRET` — any long random string, e.g. generate one with:
-  `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
-- `CLIENT_ORIGIN` — leave as `http://localhost:5173` for local dev
-
-```bash
 npm run dev
 ```
 
-The API starts on `http://localhost:5000`. Check `http://localhost:5000/api/health`
-to confirm it's up.
+The API runs on:
 
-## 3. Run the frontend
+```text
+http://localhost:5000
+```
 
-In a second terminal:
+### Frontend
+
+Open another terminal:
 
 ```bash
 cd client
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:5173`. Register an account, create a board, and you're in.
+The frontend runs on:
 
-## How it fits together
+```text
+http://localhost:5173
+```
 
-- **Auth**: `POST /api/auth/register` and `/login` return a JWT, stored in
-  `localStorage` and attached as `Authorization: Bearer <token>` on every
-  request (see `client/src/api.js`). `server/middleware/auth.js` verifies it
-  on every protected route.
-- **Boards → Columns → Tasks**: every board starts with three default columns
-  (To Do / In Progress / Done). `GET /api/boards/:id/full` returns the whole
-  board nested (columns with their tasks) in one call for the board view.
-- **Drag-and-drop**: `KanbanBoard.jsx` updates local state optimistically on
-  drop, then calls `POST /api/tasks/reorder` with the full ordered task-id
-  list for each affected column. The endpoint runs the position/column
-  updates in a single transaction (see `server/routes/tasks.js`).
-- **Ownership checks**: every board/column/task route re-verifies that the
-  requesting user (from the JWT) actually owns the board a resource belongs
-  to, via joins back to `boards.user_id` — so one user can never read or
-  modify another's data.
+## Environment Variables
 
-## Notes / things to harden before shipping this for real
+### Backend
 
-- Row Level Security is intentionally left off in `schema.sql` (see the note
-  at the bottom of that file) since this app authenticates through its own
-  Express/JWT layer rather than Supabase Auth. If you later move to
-  Supabase's client SDK + Supabase Auth, enable RLS and write policies keyed
-  off `auth.uid()`.
-- There's no rate limiting on `/api/auth/*` — add something like
-  `express-rate-limit` before exposing this publicly.
-- No board sharing/collaborators yet — boards are single-owner only.
+Create:
+
+```text
+server/.env
+```
+
+Example:
+
+```env
+DATABASE_URL=your_postgresql_connection_string
+JWT_SECRET=your_jwt_secret
+CLIENT_ORIGIN=http://localhost:5173
+PORT=5000
+```
+
+### Frontend
+
+Create:
+
+```text
+client/.env
+```
+
+Example:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+Do not commit real credentials or secrets.
+
+## Database
+
+The project uses PostgreSQL for persistent application data.
+
+The main relationships are:
+
+```text
+users
+  │
+  └── boards
+        │
+        └── columns
+              │
+              └── tasks
+```
+
+A task belongs to a column, and a column belongs to a board owned by a user.
+
+## Dashboard
+
+The application calculates board statistics from the existing task data.
+
+The dashboard provides:
+
+* Total tasks
+* Completed tasks
+* Remaining tasks
+* High-priority tasks
+* Completion percentage
+* Priority distribution
+
+A task is currently considered completed when it is placed in the `Done` column.
+
+## Deployment
+
+The production application is deployed on Vercel.
+
+Frontend:
+
+```text
+https://agile-kanban.vercel.app/
+```
+
+Backend API:
+
+```text
+https://agile-kanban.vercel.app/api
+```
+
+The repository is connected to Vercel, so pushes to the `main` branch trigger a new deployment.
+
+## What I Learned
+
+This project was used to practice building and deploying a complete full-stack application, including:
+
+* REST API design
+* Express middleware
+* JWT authentication
+* Password hashing
+* PostgreSQL queries
+* Database relationships
+* Authorization
+* React state management
+* Drag-and-drop interfaces
+* Environment variables
+* CORS
+* Vercel serverless deployment
+* Neon PostgreSQL deployment
+* Production debugging
+
+## Author
+
+**Rao Muhammad Umar**
+
+* GitHub: https://github.com/RaoMuhammadUmar
+* LinkedIn: https://linkedin.com/in/rao-umar-a15668330
+* Portfolio: https://raomuhammadumar.github.io/rao-umar-portfolio
