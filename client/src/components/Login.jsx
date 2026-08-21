@@ -1,9 +1,17 @@
+
 import React, { useState } from 'react';
-import { LayoutGrid, Mail, Lock } from 'lucide-react';
+import {
+  LayoutGrid,
+  Mail,
+  Lock,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Login({ onSwitchToRegister }) {
   const { login, loading, error } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -13,71 +21,283 @@ export default function Login({ onSwitchToRegister }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-slate-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="bg-brand-600 text-white p-2 rounded-xl">
-            <LayoutGrid size={22} />
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden">
+
+      {/* Ambient background */}
+
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-32 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 left-1/3 w-[32rem] h-[32rem] bg-purple-400/10 rounded-full blur-3xl" />
+      </div>
+
+      {/* Main card */}
+
+      <div className="relative z-10 w-full max-w-md">
+
+        <div className="glass-panel rounded-[28px] p-8 sm:p-10">
+
+          {/* Brand */}
+
+          <div className="flex flex-col items-center text-center mb-8">
+
+            <div
+              className="
+                w-16
+                h-16
+                rounded-[20px]
+                flex
+                items-center
+                justify-center
+                bg-gradient-to-br
+                from-indigo-500
+                to-blue-500
+                text-white
+                shadow-[0_14px_35px_rgba(59,130,246,0.25)]
+                mb-4
+              "
+            >
+              <LayoutGrid
+                size={30}
+                strokeWidth={2}
+              />
+            </div>
+
+            <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+              Agile Workspace
+            </h1>
+
+            <p className="text-sm text-slate-500 mt-1">
+              Simple project management for focused teams.
+            </p>
+
           </div>
-          <h1 className="text-xl font-bold text-slate-800">Agile Workspace</h1>
+
+          {/* Heading */}
+
+          <div className="mb-6">
+
+            <h2 className="text-xl font-semibold text-slate-800">
+              Welcome back
+            </h2>
+
+            <p className="text-sm text-slate-500 mt-1">
+              Log in to keep managing your boards.
+            </p>
+
+          </div>
+
+          {/* Error */}
+
+          {error && (
+            <div
+              className="
+                mb-5
+                rounded-2xl
+                border
+                border-red-200/70
+                bg-red-50/70
+                backdrop-blur-md
+                px-4
+                py-3
+                text-sm
+                text-red-600
+              "
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+          >
+
+            {/* Email */}
+
+            <div>
+
+              <label className="block text-sm font-medium text-slate-600 mb-2">
+                Email
+              </label>
+
+              <div className="relative">
+
+                <Mail
+                  size={17}
+                  className="
+                    absolute
+                    left-3.5
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-400
+                  "
+                />
+
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                  placeholder="you@example.com"
+                  className="
+                    glass-input
+                    w-full
+                    pl-10
+                    pr-4
+                    py-3
+                    rounded-2xl
+                    text-sm
+                    text-slate-700
+                    placeholder:text-slate-400
+                  "
+                />
+
+              </div>
+
+            </div>
+
+            {/* Password */}
+
+            <div>
+
+              <label className="block text-sm font-medium text-slate-600 mb-2">
+                Password
+              </label>
+
+              <div className="relative">
+
+                <Lock
+                  size={17}
+                  className="
+                    absolute
+                    left-3.5
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-400
+                  "
+                />
+
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  placeholder="••••••••"
+                  className="
+                    glass-input
+                    w-full
+                    pl-10
+                    pr-4
+                    py-3
+                    rounded-2xl
+                    text-sm
+                    text-slate-700
+                    placeholder:text-slate-400
+                  "
+                />
+
+              </div>
+
+            </div>
+
+            {/* Login button */}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="
+                group
+                w-full
+                flex
+                items-center
+                justify-center
+                gap-2
+                bg-gradient-to-br
+                from-indigo-500
+                to-blue-500
+                hover:from-indigo-600
+                hover:to-blue-600
+                disabled:opacity-60
+                disabled:cursor-not-allowed
+                text-white
+                font-medium
+                py-3
+                rounded-2xl
+                shadow-[0_12px_25px_rgba(59,130,246,0.2)]
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                active:translate-y-0
+              "
+            >
+              {loading ? (
+                'Logging in...'
+              ) : (
+                <>
+                  Log In
+                  <ArrowRight
+                    size={17}
+                    className="
+                      transition-transform
+                      duration-200
+                      group-hover:translate-x-0.5
+                    "
+                  />
+                </>
+              )}
+            </button>
+
+          </form>
+
+          {/* Security note */}
+
+          <div className="flex items-center justify-center gap-2 mt-6 text-xs text-slate-400">
+
+            <ShieldCheck size={14} />
+
+            <span>
+              Your account is securely authenticated.
+            </span>
+
+          </div>
+
+          {/* Register */}
+
+          <p className="text-sm text-slate-500 text-center mt-6">
+
+            Don't have an account?{' '}
+
+            <button
+              type="button"
+              onClick={onSwitchToRegister}
+              className="
+                text-indigo-600
+                font-medium
+                hover:text-indigo-700
+                hover:underline
+                transition-colors
+              "
+            >
+              Sign up
+            </button>
+
+          </p>
+
         </div>
 
-        <h2 className="text-lg font-semibold text-slate-700 mb-1">Welcome back</h2>
-        <p className="text-sm text-slate-500 mb-6">Log in to keep managing your boards.</p>
-
-        {error && (
-          <div className="mb-4 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg px-3 py-2">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Email</label>
-            <div className="relative">
-              <Mail size={16} className="absolute left-3 top-3 text-slate-400" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
-            <div className="relative">
-              <Lock size={16} className="absolute left-3 top-3 text-slate-400" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
-          >
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-        </form>
-
-        <p className="text-sm text-slate-500 text-center mt-6">
-          Don't have an account?{' '}
-          <button onClick={onSwitchToRegister} className="text-brand-600 font-medium hover:underline">
-            Sign up
-          </button>
+        <p className="text-center text-xs text-slate-400 mt-5">
+          Agile Workspace
         </p>
+
       </div>
     </div>
   );
 }
+
